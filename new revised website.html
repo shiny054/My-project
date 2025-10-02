@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metamorphss Portal & Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script> 
+    <style>
+        /* ================================================= */
+        /* === GLOBAL VARIABLES & SETUP === */
+        /* ================================================= */
+        :root {
+            --color-blue-600: #2563eb;
+            --color-cyan-600: #0891b2;
+            --color-blue-50: #eff6ff;
+            --color-gray-900: #1f2937;
+            --color-gray-700: #4b5563;
+            --color-gray-500: #6b7280;
+            --color-gray-300: #d1d5db;
+            --color-white: #ffffff;
+            --color-google: #db4437; 
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --color-green-500: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            min-height: 100vh;
+            background-color: var(--color-blue-50); 
+        }
+        
+        /* ================================================= */
+        /* === SHARED BACKGROUND STYLES (FROM PORTAL) === */
+        /* ================================================= */
+        .page-background {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--color-blue-50) 0%, var(--color-white) 50%, #f0ffff 100%);
+            position: relative;
+            overflow: hidden;
+            padding: 1rem;
+        }
+
+        /* Decorative Shapes (Background) */
+        .bg-shape {
+            position: absolute;
+            border: 4px solid;
+            border-radius: 50%;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+        .bg-shape.shape-1 { top: 40px; left: 40px; width: 128px; height: 128px; border-color: #60a5fa; } 
+        .bg-shape.shape-2 { top: 160px; right: 80px; width: 96px; height: 96px; border-color: #22d3ee; }
+        .bg-shape.shape-3 { bottom: 80px; left: 25%; width: 160px; height: 160px; border-color: #2dd4bf; }
+        .bg-shape.shape-4 { bottom: 160px; right: 33%; width: 80px; height: 80px; border-color: #93c5fd; }
+        .bg-icon {
+            position: absolute;
+            opacity: 0.1;
+            pointer-events: none;
+            font-size: 3rem; 
+        }
+        .bg-icon.icon-1 { top: 80px; left: 25%; font-size: 4rem; }
+        .bg-icon.icon-2 { top: 33%; right: 25%; font-size: 3.5rem; }
+        .bg-icon.icon-3 { bottom: 25%; left: 33%; font-size: 3rem; }
+        .bg-icon.icon-4 { bottom: 33%; right: 33%; font-size: 3.5rem; }
+
+        /* General Card & Form Styles (Kept from portal) */
+        .form-group label { display: block; font-size: 0.875rem; font-weight: 500; color: var(--color-gray-700); margin-bottom: 0.5rem; } 
+        .form-group input { width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--color-gray-300); border-radius: 0.5rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s; } 
+        .hidden { display: none !important; }
+
+        /* ================================================= */
+        /* === PAGE 1: LANDING PAGE STYLES (FIXED) === */
+        /* ================================================= */
+        #landing-page-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+        }
+        #landing-page-container.hidden {
+            display: none !important;
+        }
+
+        .landing-header {
+            /* FIX: Ensure header spans full width and uses flex to align items */
+            display: flex;
+            justify-content: flex-start; /* Start elements from the left */
+            align-items: center;
+            padding: 10px 40px;
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(5px);
+            border-bottom: 1px solid #e0e0e0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1001; 
+            width: 100%;
+        }
+        .landing-logo-container {
+            /* Pushes the following nav links to the far right */
+            margin-right: auto; 
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--color-blue-600);
+            display: flex;
+            align-items: center;
+        }
+        .landing-nav-link {
+            text-decoration: none;
+            color: #1a1a1a;
+            font-size: 16px;
+            margin-left: 20px;
+            transition: color 0.2s;
+        }
+        .landing-action-button {
+            background-color: #0066ff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-left: 30px;
+            text-decoration: none; 
+            transition: background-color 0.2s;
+        }
+        .landing-action-button:hover {
+            background-color: #0052cc;
+        }
+        .landing-main-content {
+            /* FIX: Ensure content is truly centered on the page */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            max-width: 900px;
+            padding: 50px;
+            text-align: center;
+            font-size: 1.2rem;
+            color: #333;
+            z-index: 1000;
+        }
+        .landing-main-content h1 {
+            font-size: 3rem;
+            color: var(--color-blue-600);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+
+        /* ================================================== */
+        /* === PAGE 2: ADMIN PORTAL STYLES === */
+        /* ================================================== */
+        
+        #portal-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center; 
+            justify-content: center;
+            z-index: 10;
+        }
+        /* Language Selector */
+        .lang-selector-wrapper { position: fixed; top: 1.5rem; right: 1.5rem; z-index: 1002; } 
+        .relative { position: relative; }
+        .lang-toggle-btn { display: flex; align-items: center; gap: 0.5rem; background-color: var(--color-white); padding: 0.5rem 1rem; border-radius: 0.5rem; box-shadow: var(--shadow-lg); transition: all 0.3s ease; border: 1px solid #bfdbfe; cursor: pointer; }
+        .lang-dropdown { position: absolute; top: 100%; margin-top: 0.5rem; right: 0; background-color: var(--color-white); border-radius: 0.5rem; box-shadow: var(--shadow-xl); border: 1px solid #e5e7eb; padding: 0.5rem 0; min-width: 180px; max-height: 70vh; overflow-y: auto; z-index: 1003; }
+        .lang-dropdown button { width: 100%; text-align: left; padding: 0.5rem 1rem; color: var(--color-gray-700); transition: background-color 0.2s ease; background: none; border: none; cursor: pointer; }
+        .lang-dropdown button.active { background-color: #dbeafe; color: #1d4ed8; font-weight: 600; }
+        /* Main Card Styling */
+        .content-area { position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; width: 100%; margin: 20px 0; }
+        .card { background-color: var(--color-white); border-radius: 1rem; box-shadow: var(--shadow-xl); width: 100%; max-width: 448px; overflow: hidden; border: 1px solid #dbeafe; }
+        .card-header { background: linear-gradient(to right, var(--color-blue-600), var(--color-cyan-600)); padding: 1.5rem; color: var(--color-white); text-align: center; }
+        .header-icon-container { display: flex; justify-content: center; margin-bottom: 0.75rem; }
+        .header-icon-container .fa-plus { background-color: var(--color-white); border-radius: 50%; padding: 0.75rem; font-size: 2.5rem; color: var(--color-blue-600); }
+        .toggle-buttons-wrapper { display: flex; border-bottom: 1px solid #e5e7eb; }
+        .toggle-tab { flex: 1; padding: 1rem; font-weight: 600; transition: all 0.3s ease; border: none; cursor: pointer; background-color: transparent; color: var(--color-gray-500); width: calc(100% / 3); }
+        .toggle-tab.active { color: var(--color-blue-600); border-bottom: 2px solid var(--color-blue-600); background-color: var(--color-blue-50); }
+        .form-content-wrapper { padding: 2rem; }
+        .form-container { display: flex; flex-direction: column; gap: 1.25rem; }
+        .submit-button { width: 100%; background: linear-gradient(to right, var(--color-blue-600), var(--color-cyan-600)); color: var(--color-white); padding: 0.75rem 1rem; border-radius: 0.5rem; font-weight: 600; border: none; cursor: pointer; }
+        .google-button { width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.75rem; background-color: var(--color-white); color: var(--color-gray-700); padding: 0.75rem 1rem; border-radius: 0.5rem; font-weight: 600; border: 1px solid var(--color-gray-300); cursor: pointer; }
+        .google-button i { color: var(--color-google); font-size: 1.25rem; }
+
+        /* ================================================== */
+        /* === PAGE 3: DUMMY DASHBOARD STYLES === */
+        /* ================================================== */
+        #dashboard-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            background-color: var(--color-blue-50); 
+            z-index: 2000; 
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Dashboard Header */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background-color: var(--color-white);
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 20px;
+        }
+        .dashboard-header h1 {
+            color: var(--color-blue-600);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .dashboard-logout-btn {
+            background-color: var(--color-blue-600);
+            color: var(--color-white);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .dashboard-logout-btn:hover {
+            background-color: var(--color-cyan-600);
+        }
+
+        /* Tabs Navigation */
+        .dashboard-tabs {
+            display: flex;
+            background-color: var(--color-white);
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 20px;
+        }
+        .dashboard-tab {
+            flex: 1;
+            padding: 15px 20px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--color-gray-500);
+            cursor: pointer;
+            transition: color 0.2s, background-color 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+        .dashboard-tab:hover {
+            color: var(--color-blue-600);
+        }
+        .dashboard-tab.active {
+            color: var(--color-blue-600);
+            border-bottom: 3px solid var(--color-blue-600);
+            background-color: var(--color-blue-50);
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        /* Tabs Content */
+        .dashboard-content-area {
+            flex-grow: 1;
+            background-color: var(--color-white);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            overflow-y: auto;
+        }
+        .tab-pane h2 {
+            color: var(--color-gray-900);
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--color-gray-300);
+            padding-bottom: 10px;
+        }
+        .tab-pane p, .tab-pane ul {
+            color: var(--color-gray-700);
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .tab-pane ul {
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="landing-page-container" class="page-background">
+        
+        <div class="bg-shape shape-1"></div>
+        <div class="bg-shape shape-2"></div>
+        <div class="bg-shape shape-3"></div>
+        <div class="bg-shape shape-4"></div>
+        
+        <div class="bg-icon icon-1">⚕️</div>
+        <div class="bg-icon icon-2">🏥</div>
+        <div class="bg-icon icon-3">💊</div>
+        <div class="bg-icon icon-4">🩺</div>
+
+        <div class="landing-header">
+            <div class="landing-logo-container">
+                <i class="fas fa-plus-square"></i> Metamorphss
+            </div>
+            
+            <i class="fas fa-globe landing-nav-link" style="margin-right: 5px;"></i> 
+            <a href="#" id="switch-to-portal" class="landing-nav-link landing-action-button" style="font-weight: 600;">Log In</a> 
+        </div>
+
+        <div class="landing-main-content">
+            <h1>Welcome to Metamorphss</h1>
+            <p>Your journey starts here. Click "Log In" to access the application.</p>
+            <div style="margin-top: 30px;">
+                <a href="#" class="landing-action-button" id="get-started-btn">Get Started Now</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-background hidden" id="portal-container">
+        
+        <div class="bg-shape shape-1"></div>
+        <div class="bg-shape shape-2"></div>
+        <div class="bg-shape shape-3"></div>
+        <div class="bg-shape shape-4"></div>
+        
+        <div class="bg-icon icon-1">⚕️</div>
+        <div class="bg-icon icon-2">🏥</div>
+        <div class="bg-icon icon-3">💊</div>
+        <div class="bg-icon icon-4">🩺</div>
+
+        <div class="lang-selector-wrapper">
+            <div class="relative">
+                <button id="lang-toggle-btn" class="lang-toggle-btn">
+                    <i class="fas fa-globe w-5 h-5 text-blue-600"></i>
+                    <span id="current-lang-name">English</span>
+                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                
+                <div id="lang-dropdown" class="lang-dropdown hidden">
+                </div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="card">
+                <div class="card-header">
+                    <div class="header-icon-container">
+                        <i class="fas fa-plus text-blue-600 fa-2x"></i> 
+                    </div>
+                    <h1 id="admin-portal-title" class="text-2xl font-bold">Admin Portal</h1>
+                </div>
+
+                <div class="toggle-buttons-wrapper">
+                    <button id="chat-tab" class="toggle-tab">
+                        <i class="fas fa-comment-alt inline mr-2"></i>
+                        <span data-key="chat">Chat Sign-in</span>
+                    </button>
+                    <button id="login-tab" class="toggle-tab active">
+                        <i class="fas fa-sign-in-alt inline mr-2"></i>
+                        <span data-key="login">Login</span>
+                    </button>
+                    <button id="register-tab" class="toggle-tab">
+                        <i class="fas fa-user-plus inline mr-2"></i>
+                        <span data-key="register">Register</span>
+                    </button>
+                </div>
+
+                <div class="form-content-wrapper">
+                    
+                    <div id="chat-form-container" class="form-container hidden">
+                        <div id="chat-messages" class="chat-form-container">
+                            </div>
+                        
+                        <div class="chat-input-wrapper">
+                            <input type="text" id="chat-input" data-key="chatPlaceholder" placeholder="Start typing...">
+                            <button id="chat-send-btn" class="chat-send-btn">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="login-form-container" class="form-container">
+                        <div class="form-group">
+                            <label data-key="username" for="login-username">Username</label>
+                            <input type="text" id="login-username" data-key="username" placeholder="Username">
+                        </div>
+                        <div class="form-group">
+                            <label data-key="password" for="login-password">Password</label>
+                            <input type="password" id="login-password" data-key="password" placeholder="Password">
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="remember-me-login">
+                            <label data-key="rememberMe" for="remember-me-login">Remember Me</label>
+                        </div>
+                        <button id="login-submit" type="button" class="submit-button" data-key="loginButton">
+                            Sign In
+                        </button>
+                        <button id="google-login-btn" type="button" class="google-button" data-key="googleLogin">
+                            <i class="fab fa-google"></i>
+                            <span data-key="googleLogin">Sign in with Google</span>
+                        </button>
+                        <p class="switch-text">
+                            <span data-key="noAccount">Don't have an account?</span>
+                            <button type="button" class="switch-link" data-switch-to="register" data-key="register">
+                                Register
+                            </button>
+                        </p>
+                    </div>
+
+                    <div id="register-form-container" class="form-container hidden">
+                        <div class="form-group">
+                            <label data-key="username" for="register-username">Username</label>
+                            <input type="text" id="register-username" data-key="username" placeholder="Username">
+                        </div>
+                        <div class="form-group">
+                            <label data-key="email" for="register-email">Email Address</label>
+                            <input type="email" id="register-email" data-key="email" placeholder="Email Address">
+                        </div>
+                        <div class="form-group">
+                            <label data-key="mobile" for="register-mobile">Mobile Number</label>
+                            <input type="tel" id="register-mobile" data-key="mobile" placeholder="Mobile Number">
+                        </div>
+                        <div class="form-group">
+                            <label data-key="password" for="register-password">Password</label>
+                            <input type="password" id="register-password" data-key="password" placeholder="Password">
+                        </div>
+                        <div class="form-group">
+                            <label data-key="confirmPassword" for="register-confirm-password">Confirm Password</label>
+                            <input type="password" id="register-confirm-password" data-key="confirmPassword" placeholder="Confirm Password">
+                        </div>
+                        <div class="checkbox-group pt-2">
+                            <input type="checkbox" id="remember-me-register">
+                            <label data-key="rememberMe" for="remember-me-register">Remember Me</label>
+                        </div>
+                        <button id="register-submit" type="button" class="submit-button" data-key="registerButton">
+                            Create Account
+                        </button>
+                        <p class="switch-text">
+                            <span data-key="haveAccount">Already have an account?</span>
+                            <button type="button" class="switch-link" data-switch-to="login" data-key="login">
+                                Login
+                            </button>
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboard-container" class="hidden">
+        
+        <div class="dashboard-header">
+            <h1><i class="fas fa-user-shield"></i> Metamorphss Portal</h1>
+            <button id="dashboard-logout-btn" class="dashboard-logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Log Out
+            </button>
+        </div>
+
+        <div class="dashboard-tabs">
+            <div id="tab-about" class="dashboard-tab active" data-target="pane-about">
+                <i class="fas fa-info-circle"></i> About Our Page
+            </div>
+            <div id="tab-login" class="dashboard-tab" data-target="pane-login">
+                <i class="fas fa-user-lock"></i> Login Details
+            </div>
+            <div id="tab-how-to-use" class="dashboard-tab" data-target="pane-how-to-use">
+                <i class="fas fa-question-circle"></i> How To Use
+            </div>
+        </div>
+
+        <div class="dashboard-content-area">
+            
+            <div id="pane-about" class="tab-pane">
+                <h2>About Our Page</h2>
+                <p>Welcome to the Metamorphss Admin Portal. </p>
+            </div>
+
+            <div id="pane-login" class="tab-pane hidden">
+                <h2>Login Details</h2>
+                
+            </div>
+
+            <div id="pane-how-to-use" class="tab-pane hidden">
+            </div>
+
+        </div>
+    </div>
+    
+    <div id="g_id_onload"
+      data-client_id="92510515615-e7g9mg6955jq85pc2uu9k7jdavicg29v.apps.googleusercontent.com"
+      data-context="signin"
+      data-ux_mode="popup"
+      data-login_uri="http://127.0.0.1:5500/main%20website.html"
+      data-auto_prompt="false">
+    </div>
+
+    <script>
+        // --- TRANSLATION DATA (OMITTED FOR BREVITY) ---
+        const translations = {
+            english: {
+                name: 'English', admin: 'Admin Portal', login: 'Login', register: 'Register', chat: 'Chat Sign-in', username: 'Username', password: 'Password', confirmPassword: 'Confirm Password', mobile: 'Mobile Number', email: 'Email Address', rememberMe: 'Remember Me', loginButton: 'Sign In', googleLogin: 'Sign in with Google', registerButton: 'Create Account', haveAccount: 'Already have an account?', noAccount: "Don't have an account?", switchTo: 'Switch to', selectLanguage: 'Select Language', chatWelcome: "Hello! I'm your AI assistant. Would you like to **Login** or **Register**?", chatLoginPrompt: "Please enter your **Username** to proceed with login.", chatPasswordPrompt: "Got it. Please enter your **Password**.", chatRegisterPrompt: "Great! Let's register. Please tell me your desired **Username**.", chatEmailPrompt: "Next, what is your **Email Address**?", chatSubmitLogin: "Attempting login...", chatSubmitRegister: "Creating account...", chatPlaceholder: "Type your response here...", chatInvalid: "I didn't quite catch that. Please type 'Login' or 'Register'."
+            },
+            hindi: { name: 'हिंदी', admin: 'प्रशासक पोर्टल', login: 'लॉग इन', register: 'पंजीकरण', chat: 'चैट साइन-इन', username: 'उपयोगकर्ता नाम', password: 'पासवर्ड', confirmPassword: 'पासवर्ड की पुष्टि करें', mobile: 'मोबाइल नंबर', email: 'ईमेल पता', rememberMe: 'मुझे याद रखें', loginButton: 'साइन इन करें', googleLogin: 'गूगल से साइन इन करें', registerButton: 'खाता बनाएं', haveAccount: 'क्या आपके पास पहले से एक खाता है?', noAccount: 'खाता नहीं है?', switchTo: 'स्विच करें', selectLanguage: 'भाषा चुनें', chatWelcome: "नमस्ते! मैं आपका एआई सहायक हूँ। क्या आप **लॉगिन** करना चाहेंगे या **पंजीकरण**?", chatLoginPrompt: "कृपया लॉगिन के साथ आगे बढ़ने के लिए अपना **उपयोगकर्ता नाम** दर्ज करें।", chatPasswordPrompt: "ठीक है। कृपया अपना **पासवर्ड** दर्ज करें।", chatRegisterPrompt: "बहुत बढ़िया! आइए पंजीकरण करते हैं। कृपया मुझे अपना वांछित **उपयोगकर्ता नाम** बताएं।", chatEmailPrompt: "अगला, आपका **ईमेल पता** क्या है?", chatSubmitLogin: "लॉगिन का प्रयास किया जा रहा है...", chatSubmitRegister: "खाता बनाया जा रहा है...", chatPlaceholder: "यहां अपना जवाब टाइप करें...", chatInvalid: "मुझे समझ नहीं आया। कृपया 'लॉगिन' या 'पंजीकरण' टाइप करें।" },
+            telugu: { name: 'తెలుగు', admin: 'అడ్మిన్ పోర్టల్', login: 'లాగిన్', register: 'నమోదు', chat: 'చాట్ సైన్-ఇన్', username: 'వినియోగదారు పేరు', password: 'పాస్‌వర్డ్', confirmPassword: 'పాస్‌వర్డ్ నిర్ధారించండి', mobile: 'మొబైల్ నంబర్', email: 'ఇమెయిల్ చిరునామా', rememberMe: 'నన్ను గుర్తుంచుకో', loginButton: 'సైన్ ఇన్', googleLogin: 'గూగుల్‌తో సైన్ ఇన్ చేయండి', registerButton: 'ఖాతా సృష్టించండి', haveAccount: 'ఇప్పటికే ఖాతా ఉందా?', noAccount: 'ఖాతా లేదూ?', switchTo: 'మారండి', selectLanguage: 'భాష ఎంచుకోండి', chatWelcome: "నమస్కారం! మీరు **లాగిన్** చేయాలనుకుంటున్నారా లేదా **నమోదు** చేయాలనుకుంటున్నారా?", chatLoginPrompt: "దయచేసి మీ **వినియోగదారు పేరు** ను నమోదు చేయండి.", chatPasswordPrompt: "సరే. దయచేసి మీ **పాస్‌వర్డ్** ను నమోదు చేయండి.", chatRegisterPrompt: "మంచిది! దయచేసి మీ **వినియోగదారు పేరు** ను చెప్పండి.", chatEmailPrompt: "మీ **ఇమెయిల్ చిరునామా** ఏమిటి?", chatSubmitLogin: "లాగిన్ ప్రయత్నిస్తోంది...", chatSubmitRegister: "ఖాతా సృష్టిస్తోంది...", chatPlaceholder: "ఇక్కడ మీ ప్రతిస్పందనను టైప్ చేయండి...", chatInvalid: "దయచేసి 'లాగిన్' లేదా 'నమోదు' అని టైప్ చేయండి।" }
+            // Add other languages here
+        };
+
+        let currentLanguage = 'english'; 
+        let chatState = {
+            step: 'welcome', mode: null, data: {} 
+        };
+
+        // --- DOM ELEMENTS ---
+        const landingContainer = document.getElementById('landing-page-container');
+        const portalContainer = document.getElementById('portal-container');
+        const dashboardContainer = document.getElementById('dashboard-container');
+        const switchToPortalLink = document.getElementById('switch-to-portal');
+        const getStartedBtn = document.getElementById('get-started-btn');
+        const loginSubmitBtn = document.getElementById('login-submit'); 
+        const dashboardLogoutBtn = document.getElementById('dashboard-logout-btn'); 
+        
+        const chatTab = document.getElementById('chat-tab'); 
+        const loginTab = document.getElementById('login-tab');
+        const registerTab = document.getElementById('register-tab');
+        const loginForm = document.getElementById('login-form-container');
+        const registerForm = document.getElementById('register-form-container');
+        const chatForm = document.getElementById('chat-form-container'); 
+        const chatMessages = document.getElementById('chat-messages'); 
+        const chatInput = document.getElementById('chat-input'); 
+        const chatSendBtn = document.getElementById('chat-send-btn'); 
+        const switchLinks = document.querySelectorAll('.switch-link');
+        const langToggleBtn = document.getElementById('lang-toggle-btn');
+        const langDropdown = document.getElementById('lang-dropdown');
+        const currentLangName = document.getElementById('current-lang-name');
+        const adminTitle = document.getElementById('admin-portal-title');
+        const googleLoginBtn = document.getElementById('google-login-btn');
+        
+        // NEW DASHBOARD TABS
+        const dashboardTabs = document.querySelectorAll('.dashboard-tab');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+
+
+        // --- LANGUAGE LOGIC ---
+        function updateLanguage() {
+            const t = translations[currentLanguage];
+
+            if (currentLangName) { currentLangName.textContent = t.name; }
+            if (adminTitle) { adminTitle.textContent = t.admin; }
+            if (chatInput) { chatInput.placeholder = t.chatPlaceholder; }
+
+            document.querySelectorAll('[data-key]').forEach(element => {
+                const key = element.getAttribute('data-key');
+                if (t[key]) {
+                    if (element.tagName === 'LABEL') {
+                        element.textContent = t[key];
+                    } else if (element.tagName === 'INPUT' && element.type !== 'checkbox') {
+                        element.placeholder = t[key];
+                    } else if (element.tagName === 'BUTTON' && element.id.includes('submit')) {
+                        element.textContent = t[key];
+                    } else if (element.closest('.toggle-tab')) {
+                        element.textContent = t[key];
+                    }
+                    else if (element.closest('.google-button')) { 
+                        if (element.tagName === 'SPAN') {
+                            element.textContent = t[key];
+                        }
+                    }
+                    else {
+                        element.textContent = t[key];
+                    }
+                }
+            });
+
+            document.querySelectorAll('.lang-dropdown button').forEach(button => {
+                const langKey = button.getAttribute('data-lang');
+                button.classList.remove('active');
+                if (langKey === currentLanguage) {
+                    button.classList.add('active');
+                }
+            });
+
+            if (chatForm && !chatForm.classList.contains('hidden')) {
+                resetChat();
+            }
+        }
+        
+        // --- VIEW TOGGLE LOGIC (Landing <-> Portal <-> Dashboard) ---
+        
+        function showLandingPage() {
+            landingContainer.classList.remove('hidden');
+            portalContainer.classList.add('hidden');
+            dashboardContainer.classList.add('hidden');
+        }
+
+        function showPortal() {
+            landingContainer.classList.add('hidden');
+            portalContainer.classList.remove('hidden');
+            dashboardContainer.classList.add('hidden');
+            switchView('login');
+        }
+        
+        function showDashboard() {
+            // Simulate a slight delay for "login" effect
+            setTimeout(() => {
+                landingContainer.classList.add('hidden');
+                portalContainer.classList.add('hidden');
+                dashboardContainer.classList.remove('hidden');
+                // Clear inputs
+                document.getElementById('login-username').value = '';
+                document.getElementById('login-password').value = '';
+                
+                // Set default tab to 'About' when dashboard loads
+                activateDashboardTab('pane-about'); 
+                console.log("Welcome to the Dashboard!");
+            }, 500);
+        }
+        
+        // LOGIC FOR LOGIN/LOGOUT ACTIONS
+        loginSubmitBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            // --- DUMMY LOGIN SUCCESS ---
+            showDashboard();
+        });
+
+        dashboardLogoutBtn.addEventListener('click', (e) => {
+             e.preventDefault();
+             showLandingPage();
+        });
+
+
+        switchToPortalLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showPortal();
+        });
+        
+        getStartedBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            showPortal();
+        });
+        
+        // --- DASHBOARD TAB LOGIC ---
+        function activateDashboardTab(targetId) {
+            dashboardTabs.forEach(tab => {
+                if (tab.getAttribute('data-target') === targetId) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            tabPanes.forEach(pane => {
+                if (pane.id === targetId) {
+                    pane.classList.remove('hidden');
+                } else {
+                    pane.classList.add('hidden');
+                }
+            });
+        }
+        
+        dashboardTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetId = tab.getAttribute('data-target');
+                activateDashboardTab(targetId);
+            });
+        });
+        
+        // --- END DASHBOARD TAB LOGIC ---
+
+
+        // --- FORM TOGGLE LOGIC (Login/Register/Chat) ---
+        function switchView(view) {
+            const forms = [loginForm, registerForm, chatForm];
+            const tabs = [loginTab, registerTab, chatTab];
+            const targetForm = document.getElementById(`${view}-form-container`);
+            const targetTab = document.getElementById(`${view}-tab`);
+
+            forms.forEach(form => form && form.classList.add('hidden'));
+            tabs.forEach(tab => tab && tab.classList.remove('active'));
+
+            if (targetForm) {
+                targetForm.classList.remove('hidden');
+                targetTab.classList.add('active');
+            }
+            
+            if (view === 'chat') {
+                resetChat();
+                chatInput.focus();
+            }
+        }
+
+        loginTab.addEventListener('click', () => switchView('login'));
+        registerTab.addEventListener('click', () => switchView('register'));
+        chatTab.addEventListener('click', () => switchView('chat')); 
+
+        switchLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const targetView = e.target.getAttribute('data-switch-to');
+                switchView(targetView);
+            });
+        });
+
+        // --- CHAT / NLP LOGIC (Mockup) ---
+
+        function addMessage(text, sender) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `chat-message ${sender}`;
+            
+            const bubble = document.createElement('div');
+            bubble.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            bubble.className = `chat-bubble ${sender}`;
+
+            messageWrapper.appendChild(bubble);
+            chatMessages.appendChild(messageWrapper);
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function resetChat() {
+            chatMessages.innerHTML = '';
+            chatState = { step: 'welcome', mode: null, data: {} };
+            addMessage(translations[currentLanguage].chatWelcome, 'bot');
+            chatInput.value = '';
+        }
+
+        function handleChatInput() {
+            const userInput = chatInput.value.trim();
+            if (!userInput) return;
+
+            addMessage(userInput, 'user');
+            chatInput.value = '';
+
+            const t = translations[currentLanguage];
+            const lowerInput = userInput.toLowerCase();
+
+            let response = '';
+
+            switch (chatState.step) {
+                case 'welcome':
+                    if (lowerInput.includes(t.login.toLowerCase()) || lowerInput.includes('sign in')) {
+                        chatState.mode = 'login';
+                        chatState.step = 'login_username';
+                        response = t.chatLoginPrompt;
+                    } else if (lowerInput.includes(t.register.toLowerCase()) || lowerInput.includes('sign up') || lowerInput.includes('create account')) {
+                        chatState.mode = 'register';
+                        chatState.step = 'register_username';
+                        response = t.chatRegisterPrompt;
+                    } else {
+                        response = t.chatInvalid;
+                    }
+                    break;
+
+                case 'login_username':
+                    chatState.data.username = userInput;
+                    chatState.step = 'login_password';
+                    response = t.chatPasswordPrompt;
+                    break;
+
+                case 'login_password':
+                    chatState.data.password = userInput;
+                    chatState.step = 'complete';
+                    response = t.chatSubmitLogin + ` (User: ${chatState.data.username}, Pass: *****)`;
+                    
+                    setTimeout(() => {
+                        addMessage(`Login for <b>${chatState.data.username}</b> successful! Redirecting to dashboard...`, 'bot');
+                        chatState.step = 'logged_in';
+                        showDashboard(); // Redirect after chat login simulation
+                    }, 1500);
+                    break;
+
+                case 'register_username':
+                    chatState.data.username = userInput;
+                    chatState.step = 'register_email';
+                    response = t.chatEmailPrompt;
+                    break;
+                
+                case 'register_email':
+                    chatState.data.email = userInput;
+                    chatState.step = 'register_password';
+                    response = t.chatPasswordPrompt; 
+                    break;
+                
+                case 'register_password':
+                    chatState.data.password = userInput;
+                    chatState.step = 'complete';
+                    response = t.chatSubmitRegister + ` (User: ${chatState.data.username}, Email: ${chatState.data.email})`;
+                    
+                    setTimeout(() => {
+                        addMessage(`Account created for <b>${chatState.data.username}</b>! You can now use the traditional login.`, 'bot');
+                        chatState.step = 'registered';
+                    }, 1500);
+                    break;
+
+                default:
+                    response = "I've completed the process. Please wait for the final message or try saying 'Login' or 'Register' again to restart.";
+                    if(chatState.step === 'logged_in' || chatState.step === 'registered') {
+                        response = "What else can I help you with? (Type 'Login' or 'Register' to restart the process)";
+                    }
+                    break;
+            }
+            
+            if (response && chatState.step !== 'complete') {
+                 addMessage(response, 'bot');
+            }
+        }
+
+        chatSendBtn.addEventListener('click', handleChatInput);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleChatInput();
+            }
+        });
+
+
+        // --- INITIALIZATION ---
+        function populateLanguageDropdown() {
+            // (Language dropdown population remains the same)
+            langDropdown.innerHTML = '';
+            Object.keys(translations).forEach(langKey => {
+                const lang = translations[langKey];
+                const button = document.createElement('button');
+                button.textContent = lang.name;
+                button.setAttribute('data-lang', langKey);
+                
+                button.addEventListener('click', () => {
+                    currentLanguage = langKey;
+                    langDropdown.classList.add('hidden');
+                    updateLanguage();
+                });
+
+                if (langKey === currentLanguage) {
+                    button.classList.add('active');
+                }
+
+                langDropdown.appendChild(button);
+            });
+        }
+        
+        langToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); 
+            langDropdown.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!langToggleBtn.contains(e.target) && !langDropdown.contains(e.target)) {
+                langDropdown.classList.add('hidden');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            populateLanguageDropdown();
+            updateLanguage(); 
+            
+            showLandingPage();
+            
+            document.getElementById('register-submit').addEventListener('click', () => {
+                alert("Registration successful! Please log in.");
+            });
+        });
+        
+        // Google Sign-In Logic
+        window.onload = function () {
+            if (portalContainer) { 
+                google.accounts.id.initialize({
+                    client_id: "92510515615-e7g9mg6955jq85pc2uu9k7jdavicg29v.apps.googleusercontent.com",
+                    callback: handleCredentialResponse,
+                    auto_select: false 
+                });
+                
+                const googleBtnWrapper = document.getElementById("google-login-btn");
+                if (googleBtnWrapper) {
+                    google.accounts.id.renderButton(
+                        googleBtnWrapper, 
+                        { theme: "outline", size: "large", text: "signin_with" } 
+                    );
+                }
+            }
+        };
+
+        function handleCredentialResponse(response) {
+            console.log("Encoded JWT ID token: " + response.credential);
+
+            const base64Url = response.credential.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const decodedPayload = JSON.parse(atob(base64));
+
+            alert("Successfully signed in as " + decodedPayload.email + ". Redirecting to dummy dashboard...");
+            showDashboard();
+        }
+    </script>
+</body>
+</html>
